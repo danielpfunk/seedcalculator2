@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seed Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #f8f8f8;
+    color: #0a0a0a;
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+  }
+
+  .page {
+    max-width: 1020px;
+    margin: 0 auto;
+    padding: 72px 32px 100px;
+  }
+
+  /* Header */
+  .header {
+    border-bottom: 2px solid #0a0a0a;
+    padding-bottom: 40px;
+    margin-bottom: 48px;
+  }
+
+  .overline {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 18px;
+  }
+
+  h1 {
+    font-family: 'Bodoni Moda', serif;
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+
+  h1 em { font-style: italic; font-weight: 400; }
+
+  .subhead {
+    font-size: 14px;
+    color: #888;
+    font-weight: 300;
+    max-width: 480px;
+    line-height: 1.65;
+  }
+
+  /* Crop toggle */
+  .crop-toggle {
+    display: flex;
+    margin-bottom: 40px;
+    border: 1.5px solid #0a0a0a;
+    width: fit-content;
+  }
+
+  .crop-btn {
+    padding: 12px 36px;
+    border: none;
+    background: transparent;
+    color: #888;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .crop-btn + .crop-btn { border-left: 1.5px solid #0a0a0a; }
+  .crop-btn.active { background: #0a0a0a; color: #f8f8f8; }
+  .crop-btn:hover:not(.active) { color: #0a0a0a; }
+
+  /* Global row */
+  .global-row {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    padding: 22px 28px;
+    border: 1px solid #ddd;
+    margin-bottom: 0;
+    flex-wrap: wrap;
+  }
+
+  .global-row + .global-row { border-top: none; margin-bottom: 44px; }
+
+  .global-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #888;
+    white-space: nowrap;
+    min-width: 140px;
+  }
+
+  .global-val {
+    font-family: 'Bodoni Moda', serif;
+    font-size: 26px;
+    font-weight: 700;
+    white-space: nowrap;
+    min-width: 110px;
+  }
+
+  .slider-wrap { flex: 1; min-width: 180px; }
+
+  input[type="range"].g-range {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 1px;
+    background: #ccc;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type="range"].g-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    background: #0a0a0a;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+
+  input[type="range"].g-range::-webkit-slider-thumb:hover { transform: scale(1.3); }
+
+  .range-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: #bbb;
+    margin-top: 6px;
+  }
+
+  /* Section header */
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: #888;
+  }
+
+  .add-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 1.5px solid #0a0a0a;
+    color: #0a0a0a;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 8px 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .add-btn:hover { background: #0a0a0a; color: #f8f8f8; }
+
+  /* Cards grid */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 20px;
+    margin-bottom: 48px;
+  }
+
+  .hybrid-card {
+    border: 1.5px solid #ddd;
+    padding: 26px;
+    position: relative;
+    transition: border-color 0.2s;
+    animation: cardIn 0.3s ease both;
+  }
+
+  .hybrid-card:hover { border-color: #aaa; }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 18px;
+  }
+
+  .hybrid-tier {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: #aaa;
+    margin-bottom: 4px;
+  }
+
+  .hybrid-name-input {
+    font-family: 'Bodoni Moda', serif;
+    font-size: 22px;
+    font-weight: 700;
+    border: none;
+    background: transparent;
+    color: #0a0a0a;
+    width: 100%;
+    outline: none;
+    border-bottom: 1px dashed #ddd;
+    padding-bottom: 2px;
+    transition: border-color 0.2s;
+  }
+
+  .hybrid-name-input:focus { border-bottom-color: #0a0a0a; }
+
+  .remove-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #ccc;
+    font-size: 20px;
+    line-height: 1;
+    padding: 0 0 0 8px;
+    flex-shrink: 0;
+    transition: color 0.2s;
+  }
+
+  .remove-btn:hover { color: #0a0a0a; }
+
+  /* Price rows on card */
+  .price-section {
+    background: #f2f2f2;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .price-col label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #888;
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  .price-col-our label { color: #0a0a0a; }
+
+  .price-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .price-symbol {
+    font-family: 'Bodoni Moda', serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: #aaa;
+  }
+
+  .price-col-our .price-symbol { color: #0a0a0a; }
+
+  input.perk-input {
+    font-family: 'DM Mono', monospace;
+    font-size: 16px;
+    font-weight: 500;
+    border: none;
+    background: transparent;
+    width: 60px;
+    outline: none;
+    color: #aaa;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .price-col-our input.perk-input { color: #0a0a0a; border-bottom-color: #aaa; }
+  input.perk-input:focus { border-bottom-color: #0a0a0a; }
+
+  .perk-k {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: #bbb;
+  }
+
+  .card-divider { height: 1px; background: #eee; margin-bottom: 16px; }
+
+  /* Acres on card */
+  .acres-row { margin-bottom: 16px; }
+
+  .acres-label-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .acres-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #888;
+  }
+
+  .acres-val {
+    font-family: 'Bodoni Moda', serif;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  input[type="range"].card-range {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 1px;
+    background: #ddd;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type="range"].card-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    background: #0a0a0a;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .card-range-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: #ccc;
+    margin-top: 5px;
+  }
+
+  /* Card footer */
+  .card-footer {
+    border-top: 1px solid #eee;
+    padding-top: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .card-footer-left { }
+
+  .card-cost-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 4px;
+  }
+
+  .card-bags {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: #bbb;
+  }
+
+  .card-cost-value {
+    font-family: 'Bodoni Moda', serif;
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  .card-savings-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: #888;
+    text-align: right;
+    margin-top: 3px;
+  }
+
+  /* Soybean panel */
+  .soy-panel {
+    border: 1.5px solid #ddd;
+    padding: 36px;
+    margin-bottom: 48px;
+  }
+
+  .soy-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .soy-title {
+    font-family: 'Bodoni Moda', serif;
+    font-size: 28px;
+    font-weight: 700;
+  }
+
+  .soy-tier {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 6px;
+  }
+
+  .soy-prices {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 28px;
+    padding: 20px;
+    background: #f2f2f2;
+  }
+
+  .soy-price-item label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #888;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .soy-price-big {
+    font-family: 'Bodoni Moda', serif;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .soy-price-big.muted { color: #bbb; }
+
+  .soy-price-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: #bbb;
+    margin-top: 4px;
+  }
+
+  .soy-acres-wrap {
+    margin-bottom: 0;
+  }
+
+  /* Summary */
+  .summary {
+    border-top: 2px solid #0a0a0a;
+    padding-top: 48px;
+  }
+
+  .summary-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 32px;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border: 1px solid #e0e0e0;
+    margin-bottom: 20px;
+  }
+
+  .summary-cell {
+    padding: 26px 22px;
+    border-right: 1px solid #e0e0e0;
+  }
+
+  .summary-cell:last-child { border-right: none; }
+
+  .sum-cell-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 10px;
+  }
+
+  .sum-cell-val {
+    font-family: 'Bodoni Moda', serif;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .sum-cell-val.muted { color: #bbb; }
+
+  .savings-bar {
+    background: #0a0a0a;
+    color: #f8f8f8;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 28px 32px;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .savings-left strong {
+    display: block;
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+
+  .savings-left span {
+    font-size: 13px;
+    opacity: 0.5;
+    font-weight: 300;
+  }
+
+  .savings-big {
+    font-family: 'Bodoni Moda', serif;
+    font-size: 52px;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  /* CTA */
+  .cta {
+    text-align: center;
+    padding: 52px 0 0;
+    border-top: 1px solid #e0e0e0;
+    margin-top: 40px;
+  }
+
+  .cta-note {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: #888;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .btn-join {
+    display: inline-block;
+    padding: 16px 52px;
+    background: #0a0a0a;
+    color: #f8f8f8;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+
+  .btn-join:hover { opacity: 0.75; }
+
+  .cta-fine {
+    font-size: 12px;
+    color: #bbb;
+    margin-top: 14px;
+    font-weight: 300;
+  }
+
+  .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 56px 32px;
+    border: 1.5px dashed #ddd;
+    color: #bbb;
+  }
+
+  .empty-state p {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .hidden { display: none; }
+
+  @media (max-width: 640px) {
+    .summary-grid { grid-template-columns: 1fr 1fr; }
+    .summary-cell:nth-child(2) { border-right: none; }
+    .summary-cell:nth-child(3) { border-top: 1px solid #e0e0e0; }
+    .savings-bar { flex-direction: column; text-align: center; }
+    .soy-prices { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="header">
+    <div class="overline">Build Your Seed Order</div>
+    <h1>Your Fields,<br><em>Your Price</em></h1>
+    <p class="subhead">Priced per thousand seeds. Add hybrids, set your acres, enter what you pay now — and see exactly what you save.</p>
+  </header>
+
+  <!-- Crop toggle -->
+  <div class="crop-toggle">
+    <button class="crop-btn active" id="btn-corn" onclick="setTab('corn')">Corn</button>
+    <button class="crop-btn" id="btn-soy" onclick="setTab('soy')">Soybeans</button>
+  </div>
+
+  <!-- ═══════════════════════════════ CORN TAB ═══════════════════════════════ -->
+  <div id="tab-corn">
+
+    <!-- Global seeding rate -->
+    <div class="global-row">
+      <div class="global-label">Seeding Rate</div>
+      <div class="global-val" id="rate-display">32,000 /ac</div>
+      <div class="slider-wrap">
+        <input type="range" class="g-range" id="global-rate" min="28000" max="38000" step="1000" value="32000" oninput="recalcCorn()">
+        <div class="range-labels"><span>28,000</span><span>33,000</span><span>38,000</span></div>
+      </div>
+    </div>
+
+    <!-- Cards section -->
+    <div class="section-header" style="margin-top:36px;">
+      <div class="section-label">Hybrids in Your Order</div>
+      <button class="add-btn" onclick="addHybrid()">+ Add Hybrid</button>
+    </div>
+
+    <div class="cards-grid" id="cards-grid"></div>
+
+  </div>
+
+  <!-- ═══════════════════════════════ SOY TAB ═══════════════════════════════ -->
+  <div id="tab-soy" class="hidden">
+
+    <div class="soy-panel">
+      <div class="soy-header">
+        <div>
+          <div class="soy-tier">Group III · Direct Treated</div>
+          <div class="soy-title">CR Soybeans</div>
+        </div>
+      </div>
+
+      <div class="soy-prices">
+        <div class="soy-price-item">
+          <label>Our Price / K</label>
+          <div class="soy-price-big">$<span id="soy-our-perk-display">0.43</span></div>
+          <div class="soy-price-sub">per 1,000 seeds · member direct</div>
+        </div>
+        <div class="soy-price-item">
+          <label>What You Pay Now / K</label>
+          <div style="display:flex; align-items:center; gap:4px; margin-bottom:4px;">
+            <span style="font-family:'Bodoni Moda',serif; font-size:20px; font-weight:700; color:#aaa;">$</span>
+            <input type="number" id="soy-market-perk" value="0.61" step="0.01" min="0.20" max="1.50"
+              style="font-family:'DM Mono',monospace; font-size:20px; border:none; border-bottom:1px solid #ccc; background:transparent; width:60px; outline:none; color:#aaa;"
+              oninput="recalcSoy()">
+            <span style="font-family:'DM Mono',monospace; font-size:10px; color:#bbb;">/K</span>
+          </div>
+          <div class="soy-price-sub">enter your current rate</div>
+        </div>
+        <div class="soy-price-item">
+          <label>Your Savings / Acre</label>
+          <div class="soy-price-big" id="soy-savings-acre">$0.00</div>
+          <div class="soy-price-sub" id="soy-savings-acre-sub">at 140,000 seeds/ac</div>
+        </div>
+      </div>
+
+      <!-- Acres slider -->
+      <div class="soy-acres-wrap">
+        <div class="acres-label-row" style="margin-bottom:10px;">
+          <span class="acres-tag">Acres to Plant</span>
+          <span class="acres-val" id="soy-acres-display">200 ac</span>
+        </div>
+        <input type="range" class="g-range" id="soy-acres" min="50" max="800" step="25" value="200" oninput="recalcSoy()">
+        <div class="range-labels"><span>50 ac</span><span>400 ac</span><span>800 ac</span></div>
+      </div>
+    </div>
+
+    <!-- Soy summary -->
+    <div class="summary">
+      <div class="summary-label">Soybean Order Summary</div>
+      <div class="summary-grid">
+        <div class="summary-cell">
+          <div class="sum-cell-label">Acres</div>
+          <div class="sum-cell-val" id="soy-sum-acres">200</div>
+        </div>
+        <div class="summary-cell">
+          <div class="sum-cell-label">Units</div>
+          <div class="sum-cell-val" id="soy-sum-units">200</div>
+        </div>
+        <div class="summary-cell">
+          <div class="sum-cell-label">Your Cost</div>
+          <div class="sum-cell-val" id="soy-sum-our">$12,040</div>
+        </div>
+        <div class="summary-cell">
+          <div class="sum-cell-label">Market Cost</div>
+          <div class="sum-cell-val muted" id="soy-sum-market">$17,080</div>
+        </div>
+      </div>
+      <div class="savings-bar">
+        <div class="savings-left">
+          <strong>Estimated Savings on Soybeans</strong>
+          <span>Direct pricing · Treated upstream · Member rate</span>
+        </div>
+        <div class="savings-big">$<span id="soy-sum-savings">5,040</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════ CORN SUMMARY ═══════════════════════════════ -->
+  <div id="corn-summary">
+    <div class="summary" style="margin-top: 0;">
+      <div class="summary-label">Corn Order Summary</div>
+      <div class="summary-grid">
+        <div class="summary-cell">
+          <div class="sum-cell-label">Total Acres</div>
+          <div class="sum-cell-val" id="sum-acres">0</div>
+        </div>
+        <div class="summary-cell">
+          <div class="sum-cell-label">Total Bags</div>
+          <div class="sum-cell-val" id="sum-bags">0</div>
+        </div>
+        <div class="summary-cell">
+          <div class="sum-cell-label">Your Cost</div>
+          <div class="sum-cell-val" id="sum-our">$0</div>
+        </div>
+        <div class="summary-cell">
+          <div class="sum-cell-label">Market Cost</div>
+          <div class="sum-cell-val muted" id="sum-market">$0</div>
+        </div>
+      </div>
+      <div class="savings-bar">
+        <div class="savings-left">
+          <strong>Total Estimated Savings — Corn</strong>
+          <span>Direct pricing · Per-hybrid comparison · Member rate</span>
+        </div>
+        <div class="savings-big">$<span id="sum-savings">0</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta">
+    <div class="cta-note">Free membership · 0% financing through Farm Credit</div>
+    <a href="#" class="btn-join">Apply for Membership</a>
+    <p class="cta-fine">No commitment. No cost. Financing pre-arranged before you order.</p>
+  </div>
+
+</div>
+
+<script>
+  const SEEDS_PER_BAG  = 80000;
+  const SOY_SEEDS_PER_UNIT = 140000;
+  const SOY_OUR_PERK   = 0.43;   // $60/unit ÷ 140 = ~$0.43/K
+
+  // ── Hybrid catalog ──────────────────────────────────────────────────────────
+  // name: CR + relative-maturity code + suffix
+  // tier: label shown in small caps
+  // ourPerk: your per-K price (never shows bag price publicly)
+  // marketPerk: default "what they pay now" — farmer can edit per card
+  const CATALOG = [
+    { name: 'CR 11-12',  tier: 'Foundation · 111-Day',  ourPerk: 3.44, marketPerk: 4.90 },
+    { name: 'CR 11-45',  tier: 'Performance · 111-Day', ourPerk: 3.50, marketPerk: 5.10 },
+    { name: 'CR 10-78',  tier: 'Elite · 107-Day',       ourPerk: 3.75, marketPerk: 5.50 },
+  ];
+
+  let hybrids = [];
+  let idCounter = 0;
+  let activeTab = 'corn';
+
+  // ── Tab switching ────────────────────────────────────────────────────────────
+  function setTab(tab) {
+    activeTab = tab;
+    document.getElementById('tab-corn').classList.toggle('hidden', tab !== 'corn');
+    document.getElementById('corn-summary').classList.toggle('hidden', tab !== 'corn');
+    document.getElementById('tab-soy').classList.toggle('hidden', tab !== 'soy');
+    document.getElementById('btn-corn').classList.toggle('active', tab === 'corn');
+    document.getElementById('btn-soy').classList.toggle('active', tab === 'soy');
+  }
+
+  // ── Hybrid card management ───────────────────────────────────────────────────
+  function addHybrid(template) {
+    const t = template || CATALOG[hybrids.length % CATALOG.length];
+    const id = ++idCounter;
+    hybrids.push({ id, name: t.name, tier: t.tier, ourPerk: t.ourPerk, marketPerk: t.marketPerk, acres: 100 });
+    renderCards();
+  }
+
+  function removeHybrid(id) {
+    hybrids = hybrids.filter(h => h.id !== id);
+    renderCards();
+  }
+
+  function updateHybrid(id, field, val) {
+    const h = hybrids.find(h => h.id === id);
+    if (h) { h[field] = val; recalcCorn(); }
+  }
+
+  function renderCards() {
+    const grid = document.getElementById('cards-grid');
+    grid.innerHTML = '';
+
+    if (hybrids.length === 0) {
+      grid.innerHTML = `
+        <div class="empty-state">
+          <p>No hybrids in your order yet</p>
+          <button class="add-btn" onclick="addHybrid()" style="margin:0 auto;">+ Add First Hybrid</button>
+        </div>`;
+      recalcCorn();
+      return;
+    }
+
+    const seedingRate = parseInt(document.getElementById('global-rate').value);
+
+    hybrids.forEach(h => {
+      const totalSeeds = h.acres * seedingRate;
+      const bags       = Math.ceil(totalSeeds / SEEDS_PER_BAG);
+      const ourCost    = bags * (h.ourPerk * SEEDS_PER_BAG / 1000);
+      const mktCost    = (totalSeeds / 1000) * h.marketPerk;
+      const saved      = mktCost - ourCost;
+
+      const card = document.createElement('div');
+      card.className = 'hybrid-card';
+      card.id = `card-${h.id}`;
+      card.innerHTML = `
+        <div class="card-top">
+          <div style="flex:1;min-width:0;">
+            <div class="hybrid-tier">${h.tier}</div>
+            <input class="hybrid-name-input" type="text" value="${h.name}"
+              oninput="updateHybrid(${h.id},'name',this.value)">
+          </div>
+          <button class="remove-btn" onclick="removeHybrid(${h.id})">×</button>
+        </div>
+
+        <div class="price-section">
+          <div class="price-col price-col-our">
+            <label>Our Price /K</label>
+            <div class="price-input-wrap">
+              <span class="price-symbol">$</span>
+              <input class="perk-input" type="number" value="${h.ourPerk.toFixed(2)}" step="0.01" min="1" max="10"
+                onchange="updateHybrid(${h.id},'ourPerk',parseFloat(this.value)||h.ourPerk); renderCards();">
+              <span class="perk-k">/K</span>
+            </div>
+          </div>
+          <div class="price-col">
+            <label>You Pay Now /K</label>
+            <div class="price-input-wrap">
+              <span class="price-symbol">$</span>
+              <input class="perk-input" type="number" value="${h.marketPerk.toFixed(2)}" step="0.01" min="1" max="10"
+                onchange="updateHybrid(${h.id},'marketPerk',parseFloat(this.value)||h.marketPerk); renderCards();">
+              <span class="perk-k">/K</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="acres-row">
+          <div class="acres-label-row">
+            <span class="acres-tag">Acres</span>
+            <span class="acres-val" id="av-${h.id}">${h.acres} ac</span>
+          </div>
+          <input type="range" class="card-range" min="25" max="500" step="25" value="${h.acres}"
+            oninput="
+              updateHybrid(${h.id},'acres',parseInt(this.value));
+              document.getElementById('av-${h.id}').textContent=this.value+' ac';
+              renderCards();
+            ">
+          <div class="card-range-labels"><span>25 ac</span><span>500 ac</span></div>
+        </div>
+
+        <div class="card-footer">
+          <div class="card-footer-left">
+            <div class="card-cost-label">Hybrid Cost</div>
+            <div class="card-bags">${bags} bags needed</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="card-cost-value">$${Math.round(ourCost).toLocaleString()}</div>
+            <div class="card-savings-tag">save $${Math.round(Math.max(saved,0)).toLocaleString()}</div>
+          </div>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+
+    recalcCorn();
+  }
+
+  // ── Corn totals ──────────────────────────────────────────────────────────────
+  function recalcCorn() {
+    const seedingRate = parseInt(document.getElementById('global-rate').value);
+    document.getElementById('rate-display').textContent =
+      (seedingRate/1000).toFixed(0) + ',000 /ac';
+
+    let totalAcres=0, totalBags=0, totalOur=0, totalMarket=0;
+
+    hybrids.forEach(h => {
+      const totalSeeds = h.acres * seedingRate;
+      const bags       = Math.ceil(totalSeeds / SEEDS_PER_BAG);
+      totalAcres  += h.acres;
+      totalBags   += bags;
+      totalOur    += bags * (h.ourPerk * SEEDS_PER_BAG / 1000);
+      totalMarket += (totalSeeds / 1000) * h.marketPerk;
+    });
+
+    const savings = totalMarket - totalOur;
+    document.getElementById('sum-acres').textContent   = totalAcres.toLocaleString();
+    document.getElementById('sum-bags').textContent    = totalBags.toLocaleString();
+    document.getElementById('sum-our').textContent     = '$' + Math.round(totalOur).toLocaleString();
+    document.getElementById('sum-market').textContent  = '$' + Math.round(totalMarket).toLocaleString();
+    document.getElementById('sum-savings').textContent = Math.round(Math.max(savings,0)).toLocaleString();
+  }
+
+  // ── Soy totals ───────────────────────────────────────────────────────────────
+  function recalcSoy() {
+    const acres     = parseInt(document.getElementById('soy-acres').value);
+    const marketPerK = parseFloat(document.getElementById('soy-market-perk').value) || 0;
+
+    document.getElementById('soy-acres-display').textContent = acres.toLocaleString() + ' ac';
+
+    const totalSeeds = acres * SOY_SEEDS_PER_UNIT;
+    const ourCost    = (totalSeeds / 1000) * SOY_OUR_PERK;
+    const mktCost    = (totalSeeds / 1000) * marketPerK;
+    const savings    = mktCost - ourCost;
+
+    const savingsPerAcre = (marketPerK - SOY_OUR_PERK) * (SOY_SEEDS_PER_UNIT / 1000);
+
+    document.getElementById('soy-savings-acre').textContent =
+      '$' + savingsPerAcre.toFixed(2);
+    document.getElementById('soy-sum-acres').textContent  = acres.toLocaleString();
+    document.getElementById('soy-sum-units').textContent  = acres.toLocaleString();
+    document.getElementById('soy-sum-our').textContent    = '$' + Math.round(ourCost).toLocaleString();
+    document.getElementById('soy-sum-market').textContent = '$' + Math.round(mktCost).toLocaleString();
+    document.getElementById('soy-sum-savings').textContent = Math.round(Math.max(savings,0)).toLocaleString();
+  }
+
+  // ── Init ─────────────────────────────────────────────────────────────────────
+  CATALOG.forEach(t => addHybrid(t));
+  recalcSoy();
+</script>
+</body>
+</html>
